@@ -43,6 +43,9 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IQueueService, QueueService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddSingleton<ITokenService, JwtTokenService>();
+builder.Services.AddScoped<IAuthStore, AuthStore>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICsvExportService, CsvExportService>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreatePatientValidator>();
 

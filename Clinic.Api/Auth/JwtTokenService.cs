@@ -1,13 +1,14 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Clinic.Infrastructure.Identity;
+using Clinic.Application.Abstractions;
+using Clinic.Application.DTOs.Auth;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Clinic.Api.Auth;
 
-public sealed class JwtTokenService
+public sealed class JwtTokenService : ITokenService
 {
     public const string DoctorIdClaim = "doctorId";
 
@@ -15,15 +16,15 @@ public sealed class JwtTokenService
 
     public JwtTokenService(IOptions<JwtOptions> options) => _options = options.Value;
 
-    public (string Token, DateTime ExpiresAtUtc) Create(ApplicationUser user, IEnumerable<string> roles)
+    public AccessTokenDto Create(AuthUserDto user)
     {
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id),
             new(ClaimTypes.Name, user.FullName),
-            new(ClaimTypes.Email, user.Email ?? string.Empty),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Role, user.Role),
         };
-        claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
         if (!string.IsNullOrEmpty(user.DoctorId))
             claims.Add(new Claim(DoctorIdClaim, user.DoctorId));
 
@@ -37,6 +38,6 @@ public sealed class JwtTokenService
             expires: expires,
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
-        return (new JwtSecurityTokenHandler().WriteToken(token), expires);
+        return new AccessTokenDto(new JwtSecurityTokenHandler().WriteToken(token), expires);
     }
 }
